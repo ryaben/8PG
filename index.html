@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="dep/animate.css/animate.min.css">
+    <script src="dep/jquery/jquery-3.5.1.min.js"></script>
+    <script src="dep/sweetalert2/sweetalert2@10.js"></script>
+</head>
+<body>
+    <div id='main-menu' class='menu-screen animate__animated animate__fadeIn animate__faster'>
+        <img id='game-logo' src='res/img/logo.png' alt='game-logo'>
+        <div>
+            <button class='main-button' id='new-game-button'>New game</button>
+            <button class='main-button' id='load-game-button'>Load game</button>
+            <button class='main-button' id='player-profile-button'>Player profile</button>
+            <button class='main-button' id='about-button'>About...</button>
+        </div>
+    </div>
+
+    <div id='new-game-screen' class='menu-screen animate__animated animate__fadeIn animate__faster'>
+        <p class='main-title'>New game</p>
+        <div class='content-box'>
+            <div id='game-players'>
+                <div class='player-box'>
+                    <p class='player-name'>&nbsp;</p>
+                </div>
+                <div class='player-box'>
+                    <p class='player-name'>&nbsp;AI</p>
+                </div>
+            </div>
+
+            <div id='default-parameters'>
+                <input id='default-parameters-check' type='checkbox' name='default-parameters' checked='checked'>
+                <label for='default-parameters-check'>&nbsp;Play with default values</label>
+            </div>
+
+            <div id='extra-parameters' style='display:none;'>
+                <div id='custom-parameters'>
+                    <img class='info-icon' src='res/img/info.png' alt='info' height='20px'>
+                    <label for='resources'>Resources</label>
+                    <input class='parameter-slider' name='resources' type='range' min='-20' max='20' step='10' value='0'>
+                    <label class='parameter-value' for='resources'>0%</label>
+                    <img class='info-icon' src='res/img/info.png' alt='info' height='20px'>
+                    <label for='resources'>Health</label>
+                    <input class='parameter-slider' name='resources' type='range' min='-20' max='20' step='10' value='0'>
+                    <label class='parameter-value' for='resources'>0%</label>
+                </div>
+                <hr class='divisory-line'>
+                <div class='checked-parameter'>
+                    <div style='display:flex;justify-content:left;align-items:center;'>
+                        <input type='checkbox' id='technologies-developed'>
+                        <label for='technologies-developed'>Technologies developed</label>
+                    </div>
+                    <img class='info-icon' src='res/img/info.png' alt='info' height='20px'>
+                </div>
+                <div class='checked-parameter'>
+                    <div style='display:flex;justify-content:left;align-items:center;'>
+                        <input type='checkbox' id='initial-reinforcements'>
+                        <label for='initial-reinforcements'>Initial reinforcements</label>
+                    </div>
+                    <img class='info-icon' src='res/img/info.png' alt='info' height='20px'>
+                </div>
+            </div>
+        </div>
+        <div class='button-group'>
+            <button class='back'>Back</button>
+            <button id='new-file'>New file</button>
+        </div>
+    </div>
+
+    <div id='load-game-screen' class='menu-screen animate__animated animate__fadeIn animate__faster'>
+        <p class='main-title'>Load game</p>
+        <div class='button-group'>
+            <button class='back'>Back</button>
+            <button id='load-file'>Load file</button>
+        </div>
+    </div>
+
+    <div id='player-profile-screen' class='menu-screen animate__animated animate__fadeIn animate__faster'>
+        <div class='content-box'>
+            
+        </div>
+        <div class='button-group'>
+            <button class='back'>Back</button>
+            <button id='save-profile'>Save</button>
+        </div>
+    </div>
+
+    <div id='about-screen' class='menu-screen animate__animated animate__fadeIn animate__faster'>
+        <div class='content-box'>
+            
+        </div>
+        <div class='button-group'>
+            <button class='back'>Back</button>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src='js/index.js'></script>
+<script type="text/javascript" src='js/game.js'></script>
+</html>
