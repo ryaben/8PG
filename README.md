@@ -13,7 +13,7 @@
 8PG se puede bajar manualmente desde la web de Github o haciendo uso del siguiente comando en una terminal:
 
 ```
-git clone https://github.com/ryaben/gestionamiento-insumos.git
+git clone https://github.com/ryaben/8PG.git
 ```
 
 
