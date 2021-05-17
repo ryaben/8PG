@@ -487,7 +487,7 @@ $(document).ready(function($) {
             let targetUnit = this.activeGame.players[player].properties[this.activeGame.board.tiles[targetTileID].propertyIndex];
 
             //Recarga las imágenes correspondientes.
-            $(`#board-tile-${targetTileID}`).attr('src', `res/img/${targetUnit.name}-${player}.png`);
+            $(`#board-tile-${targetTileID}`).attr('src', `res/img/${targetUnit.name.toLowerCase()}-${player}.png`);
             $(`#board-tile-${targetTileID}`).attr('alt', targetUnit.name);
             $(`#board-tile-${currentTileID}`).attr('src', `res/img/transparent.png`);
             $(`#board-tile-${currentTileID}`).attr('alt', 'transparent');
@@ -541,7 +541,7 @@ $(document).ready(function($) {
                 //Verifica si el casillero tiene propiedad, para cargar la imagen debida o una transparente.
                 if (tileID.player === false) {
                     targetObject = { name: 'transparent' }
-                    $(`#board-tile-${index}`).attr('src', `res/img/${targetObject.name}.png`);
+                    $(`#board-tile-${index}`).attr('src', `res/img/${targetObject.name.toLowerCase()}.png`);
                 } else {
                     targetObject = this.activeGame.players[tileID.player].properties[tileID.propertyIndex];
                     $(`#board-tile-${index}`).attr('src', `res/img/${targetObject.name.toLowerCase()}-${tileID.player}.png`);
@@ -856,7 +856,7 @@ $(document).ready(function($) {
                 //Agrega el refuerzo seleccionado al array de propiedades en el tablero.
                 this.activeGame.players[player].properties.push(this.activeGame.players[player].reinforcements[selectedReinforcement]);
                 //Actualiza la imagen del casillero.
-                $(`#board-tile-${selectedTileID}`).attr('src', `res/img/${selectedReinforcementName}-${player}.png`);
+                $(`#board-tile-${selectedTileID}`).attr('src', `res/img/${selectedReinforcementName.toLowerCase()}-${player}.png`);
                 $(`#board-tile-${selectedTileID}`).attr('alt', selectedReinforcementName);
                 //Aplica los datos de jugador y propiedad sobre el casillero del tablero.
                 this.activeGame.board.tiles[selectedTileID].player = player;
