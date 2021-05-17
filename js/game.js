@@ -4,18 +4,8 @@
   -------------------------------------*/
 
 $(document).ready(function($) {
-    //Variables de clases para JQuery.
-    var $boardImages = $('.board-image');
-    var $menuScreens = $('.menu-screen');
-    var $gameScreens = $('.game-screen');
-    var $screenSwitchers = $('.switch');
-
-    //Variables de elementos únicos para JQuery.
-    var $boardScreen = $('#board-screen');
-    var $upgradeScreen = $('#upgrade-screen');
-
     //Clases
-    class Handler {
+    class GameHandler {
         constructor() {
             this.activeGame = false;
             this.powerupFunctions = {
@@ -30,7 +20,7 @@ $(document).ready(function($) {
                     let targetedIndex = handler.getPropertyIndex(targetedTileID);
                     let targetedProperty = handler.getProperty(targetedTileID);
 
-                    handler.changeGlobalPropertyStat(targetedPlayer, targetedIndex, stat, eval(amount));
+                    handler.changeGlobalPropertyStat(targetedPlayer, targetedIndex, stat, amount);
                     handler.checkDeceasedProperty(targetedProperty, targetedTileID);
                     handler.loadInsights(targetedTileID);
                     if (player === 1) { $('#powerups-list option:selected').remove(); }
@@ -47,7 +37,7 @@ $(document).ready(function($) {
                     handler.powerupFunctions["targetedStatChange"](handler, player, tile, 'stamina', 1);
                 },
                 "Deathly strike": function(handler, player, tile) {
-                    handler.powerupFunctions["targetedStatChange"](handler, player, tile, 'health', '-targetedProperty.health');
+                    handler.powerupFunctions["targetedStatChange"](handler, player, tile, 'health', -handler.getProperty(handler.getTileID(tile)).health);
                 },
                 //Powerups generales:
                 "Call to arms": function(handler, player) { 
@@ -77,7 +67,7 @@ $(document).ready(function($) {
                 },
                 "Distant onslaught": function(handler, player) {
                     handler.changeGlobalPropertyStat(+!player, 'Building', 'health', -20);
-                    handler.activeGame.board.forEach( function(tile, index) {
+                    handler.activeGame.board.tiles.forEach(function(tile, index) {
                         if (tile.player === +!player) {
                             handler.checkDeceasedProperty(handler.getProperty(index), index);
                         }
@@ -85,13 +75,17 @@ $(document).ready(function($) {
                 },
                 "Wrath of the gods": function(handler, player) { 
                     handler.changeGlobalPropertyStat(+!player, 'Unit', 'health', -20);
-                    handler.activeGame.board.forEach( function(tile, index) {
+                    handler.activeGame.board.tiles.forEach(function(tile, index) {
                         if (tile.player === +!player) {
                             handler.checkDeceasedProperty(handler.getProperty(index), index);
                         }
                     });
                 },
                 //Tecnologías de única vez:
+                "Giant wheels": function(handler, player) {
+                    let castle = handler.searchProperty('Castle', 'alive', player);
+                    handler.activeGame.players[player].properties[castle].type = 'Unit';
+                },
                 "Iron tools": function(handler, player) {
                     handler.changeGlobalPropertyStat(player, 'Castle', 'productionAmount', 50);
                 },
@@ -103,208 +97,15 @@ $(document).ready(function($) {
                             unit.strength += 10;
                         }
                     });
+                },
+                "Campsites": function(handler, player) {
+                    if (player === 0) {
+                        handler.activeGame.players[player].specialAttributes.spawnReach = 9;
+                    } else if (player === 1) {
+                        handler.activeGame.players[player].specialAttributes.spawnReach = 5;
+                    }
                 }
             }
-        }
-
-        //-----------------------------------------------------------
-        //| Métodos para el funcionamiento de la pantalla del menú: |
-        //-----------------------------------------------------------
-
-        //Procesa todas las escuchas de la aplicación.
-        menuEventsHandling() {
-            $('.main-button').on('click', function() {
-                handler.switchMenu($(this).index());
-            });
-
-            $('.back').on('click', function() {
-                handler.switchMenu(-1);
-            });
-    
-            $('#new-file').on('click', function() {
-                localStorage.setItem('gameToLoad', '');
-                window.location.href = "game.html";
-            });
-    
-            $('#load-file').on('click', function() {
-                window.location.href = "game.html";
-            });
-    
-            $('#load-game-screen').on('click', 'input[name=save-entry]', function() {
-                localStorage.setItem('gameToLoad', $('input[name=save-entry]:checked').val());
-            });
-
-            $('#default-parameters-check').on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('#extra-parameters').slideUp(300);
-                } else {
-                    $('#extra-parameters').slideDown(300);
-                }
-            });
-
-            $('.parameter-slider').on('change', function() {
-                $(this).next('.parameter-value').text($(this).val() + '%');
-            });
-
-            $('#load-game-screen').on('click', '.delete-entry', function() {
-                handler.deleteGame($(this));
-            });
-
-            $('.info-icon').on('click', function() {
-                handler.showParameterInfo($(this).index('.info-icon'));
-            });
-        }
-
-        //Cambia la sección activa del menú principal
-        switchMenu(selectedScreen) {
-            //Se suma 1 porque la pantalla inicial no tiene botón.
-            let selectedScreenIndex = selectedScreen + 1;
-
-            //Oculta todas las pantallas.
-            $menuScreens.hide();
-            //Muestra la pantalla correspondiente al botón tocado.
-            $(`.menu-screen:eq(${selectedScreenIndex})`).show();
-
-        }
-
-        //Carga visualmente todos los archivos de guardado en el LocalStorage.
-        loadSavesList() {
-            for (let i = 0; i < localStorage.length; i++){
-                //Si no se trata de la llave que guarda la información del jugador y que no es una partida, la carga.
-                if (localStorage.key(i) != 'profile' && localStorage.key(i) != 'gameToLoad') {
-                    let saveObject = JSON.parse(localStorage.getItem(localStorage.key(i)));
-
-                    $(`
-                    <label class='save-entry'>
-                        <input type='radio' name='save-entry' value='${localStorage.key(i)}'>
-                        <label class='save-name'>${localStorage.key(i)}</label>
-                        <br>
-                        &nbsp;<label for='${localStorage.key(i)}'>${saveObject.date}</label>
-                        <button class='delete-entry'>Delete</button>
-                    </label>
-                    `).insertAfter('.main-title:eq(1)');
-                }
-            }
-        }
-
-        //Recupera una instancia de juego cargándola del LocalStorage y pisa al handler por defecto, o crea un juego desde una plantilla.
-        setupGame(gameName) {
-            //Si se pasa un nombre de partida, se carga.
-            if (gameName != '') {
-                let saveObject = JSON.parse(localStorage.getItem(gameName));
-
-                this.activeGame = new Game(
-                    gameName, 'active', saveObject.turn, saveObject.events, saveObject.board, saveObject.players, saveObject.date
-                );
-            //Si no hay nombre de partida para cargar, crea un juego nuevo según valores por defecto.
-            } else {
-                this.activeGame = new Game(
-                    gameName, 'active', 1, '',
-
-                    //Tablero de la partida.
-                    [{propertyIndex: 0, player: 0}, {propertyIndex: 1, player: 0}, {propertyIndex: 2, player: 0}, //Fila del IA
-                    {propertyIndex: false, player: false}, {propertyIndex: false, player: false}, {propertyIndex: false, player: false},
-                    {propertyIndex: false, player: false}, {propertyIndex: false, player: false}, {propertyIndex: false, player: false},
-                    {propertyIndex: false, player: false}, {propertyIndex: false, player: false}, {propertyIndex: false, player: false},
-                    {propertyIndex: 0, player: 1}, {propertyIndex: 1, player: 1}, {propertyIndex: 2, player: 1}], //Fila del jugador
-                    
-                    //Valores del IA:
-                    [new Player('AI', 500, 200, 400, 
-                    [//Propiedades iniciales en tablero.
-                        new Building('Windmill', 'Building', 'gold', 300, 80, 0, 2, 2, 'alive','food', 500),
-                        new Building('Castle', 'Building', 'gold', 500, 100, 20, 2, 2, 'alive','gold', 150),
-                        new Building('Temple', 'Building', 'gold', 400, 80, 0, 2, 2, 'alive','mana', 300)
-                    ], 
-                    [], 
-                    [], 
-                    {//Tecnologías.
-                        "Iron tools": 0,
-                        "Magical swords": 0,
-                        "Campsites": 0,
-                    }),
-
-                    //Valores del jugador:
-                    new Player('Ramiro', 500, 400, 400, 
-                    [//Propiedades iniciales en tablero.
-                        new Building('Temple', 'Building', 'gold', 400, 80, 0, 2, 2, 'alive', 'mana', 100),
-                        new Building('Castle', 'Building', 'gold', 500, 100, 20, 2, 2, 'alive','gold', 125),
-                        new Building('Windmill', 'Building', 'gold', 300, 80, 0, 2, 2, 'alive','food', 100)
-                    ], 
-                    [], 
-                    [], 
-                    {//Tecnologías.
-                        "Iron tools": 0,
-                        "Magical swords": 0,
-                        "Campsites": 0,
-                    })],
-
-                    `${new Date().toLocaleDateString()} - ${new Date().getHours()}:${new Date().getMinutes()}`
-                );
-            }
-
-            handler.initializeGame();
-        }
-
-        //Elimina un juego guardado en el localStorage.
-        deleteGame(gameEntry) {
-            let gameEntryIndex = parseInt(gameEntry.closest('.save-entry').index() - 1);
-            let gameEntryName = gameEntry.siblings('.save-name').text();
-
-            Swal.fire({
-                //Aspecto visual.
-                width: "80%",
-                hideClass: { popup: 'animate__animated animate__bounceOut' },
-                //Textos.
-                title: "Are you sure?",
-                text: 'This action cannot be undone.',
-                //Botones.
-                confirmButtonText: "Delete",
-                cancelButtonText: "Cancel",
-                showCancelButton: true,
-            }).then((result) => {
-                //Al querer salir al menú principal.
-                if (result.isConfirmed) {
-                    localStorage.removeItem(gameEntryName);
-                    $(`.save-entry:eq(${gameEntryIndex})`).remove();
-                }
-            });
-        }
-
-        //Despliega un alert con la información del parámetro clickeado.
-        showParameterInfo(parameter) {
-            let infoMessage;
-
-            switch (parameter) {
-                case 0: infoMessage = 'Initial values of gold, mana and food for each player.'; break;
-                case 1: infoMessage = 'Initial value of health for Castle, Temple and Sawmill on each player.'; break;
-                case 2: infoMessage = 'If checked, players start the game with all technologies developed and their effects on.'; break;
-                case 3: infoMessage = 'If checked, players start the game with 3 Warriors on the reinforcements list.'; break;
-                default: ''; break;
-            }
-
-            Swal.fire({
-                text: infoMessage,
-                icon: 'info',
-                width: '80%'
-            });
-        }
-
-        //Define los detalles para el funcionamiento del menú.
-        initializeMenu() {
-            //Carga visualmente la lista de partidas guardadas.
-            handler.loadSavesList();
-
-            //Selecciona la primera opción de partidas guardadas.
-            $('input[name=save-entry]:eq(0)').click();
-
-            //Selecciona la pantalla inicial.
-            handler.switchMenu(-1);
-
-            //Establece parámetros en valores por defecto.
-            $('#parameter-slider').attr('value', '0');
-
-            //Carga los datos del perfil de jugador.
-            handler.loadProfile();
         }
 
         //-----------------------------------------------------------
@@ -317,19 +118,19 @@ $(document).ready(function($) {
                 handler.showMenu();
             });
     
-            $screenSwitchers.on('click', function() {
-                handler.switchScreen($(this));
+            $('.switch').on('click', function() {
+                handler.switchScreen($(this), $('#lower-bar').is(':visible'));
             });
     
-            $('.board-image:not(.highlighted,.highlighted-move,.highlighted-attack)').on('click', function() {
+            $('#board').on('click', '.board-image:not(.highlighted,.highlighted-move,.highlighted-attack)', function() {
                 handler.clickBoardTile($(this));
             });
     
-            $('.board-tile').on('click', '.highlighted-move', function() {
+            $('#board').on('click', '.highlighted-move', function() {
                 handler.moveTile(1, $('.highlighted:eq(0)'), $(this));
             });
     
-            $('.board-tile').on('click', '.highlighted-attack', function() {
+            $('#board').on('click', '.highlighted-attack', function() {
                 handler.attackTile(1, $('.highlighted:eq(0)'), $(this));
             });
         
@@ -382,18 +183,18 @@ $(document).ready(function($) {
             $('.switch:eq(0)').click();
     
             //Carga visualmente el tablero.
-            this.loadBoardImages(this.activeGame.board);
+            this.loadBoardImages(this.activeGame.board.tiles);
     
             //Lleva al plano visual los recursos del jugador.
             this.updateResources();
     
             //Hace clic sobre el castillo del jugador 1.
-            $('.board-image:eq(13)').click();
+            $('.board-image:eq(0)').click();
     
             //Carga las opciones de crafting.
-            this.loadCraftingList('Units');
-            this.loadCraftingList('Powerups');
-            this.loadCraftingList('Technologies');
+            this.loadCraftingList('units');
+            this.loadCraftingList('powerups');
+            this.loadCraftingList('technologies');
     
             //Selecciona la primera opción de la lista de crafteo.
             $('#crafting-list option:eq(0)').attr('selected', true);
@@ -405,7 +206,7 @@ $(document).ready(function($) {
         //Cambia la sección activa de la pantalla de juego.
         switchScreen(switchClicked) {
             //Efectos visuales.
-            $screenSwitchers.css({
+            $('.switch').css({
                 'background-color': 'white',
                 'color': 'black'});
             switchClicked.css({
@@ -413,17 +214,24 @@ $(document).ready(function($) {
                 'color': 'white'});
 
             //Activación y desactivación de divs.
-            $gameScreens.hide();
-            $screenSwitchers.attr('disabled', true);
+            $('.game-screen').hide();
+            $('.switch').attr('disabled', true);
 
             switch (switchClicked.index() - 1) {
                 case 0:
-                $boardScreen.show();
+                //Muestra el tablero y habilita el botón contrario.
+                $('#board-screen').show();
                 $('#upgrades-switch').attr('disabled', false);
+                //Muestra las barras inferiores y quita su animación.
+                $('#board-tile-0').click();
                 break;
                 case 1:
-                $upgradeScreen.show();
+                //Muestra el crafting y habilita el botón contrario.
+                $('#upgrade-screen').show();
                 $('#board-switch').attr('disabled', false);
+                //Oculta las barras inferiores y agrega su animación.
+                $('#lower-bar').hide();
+                $('#lowest-bar').hide();
                 break;
             }
         }
@@ -454,7 +262,7 @@ $(document).ready(function($) {
                     //Si el nombre de partida es vacío, se solicita uno.
                     if (!value) { return "Please choose a name for the file." }
                     //El nombre de partida no puede tener ciertos valores que ocasionarían problemas con otras áreas.
-                    else if (value == 'profile' || value == 'gameToLoad' || value == 0) { return "Please choose a different name." }
+                    else if (value == 'profilesList' || value == 'gameToLoad' || value == 'gameParameters' || value == 0) { return "Please choose a different name." }
                     //Ante cualquier otro caso, se cambia el nombre de la partida actual y se guarda el Game en localStorage.
                     else { this.activeGame.name = value; this.saveGame(value) }
                 }
@@ -480,10 +288,127 @@ $(document).ready(function($) {
             });
         }
 
+        //Recupera una instancia de juego cargándola del LocalStorage y pisa al handler por defecto, o crea un juego desde una plantilla.
+        setupGame(gameName) {
+            //Busca los parámetros de partida almacenados en localStorage.
+            let gameParameters = JSON.parse(localStorage.getItem('gameParameters'));
+            //Trae las tecnologías disponibles en el juego.
+            let technologiesList = {};
+            let boardRows;
+            let boardColumns;
+
+            //Calcula el tamaño del tablero según el string que lo define.
+            switch (gameParameters.boardSize) {
+                case 'Small':
+                    boardRows = 5;
+                    boardColumns = 3;
+                break;
+                case 'Medium':
+                    boardRows = 5;
+                    boardColumns = 5;
+                break;
+                case 'Large':
+                    boardRows = 7;
+                    boardColumns = 5;
+                break;
+            }
+
+            let gameBoard = new Board(boardRows, boardColumns);
+
+            //Si se pasa un nombre de partida, se carga.
+            if (gameName != '') {
+                let saveObject = JSON.parse(localStorage.getItem(gameName));
+
+                this.activeGame = new Game(
+                    gameName, saveObject.victoryMode, 'active', saveObject.turn, saveObject.events, saveObject.board, saveObject.players, saveObject.date
+                );
+            //Si no hay nombre de partida para cargar, crea un juego nuevo según valores por defecto.
+            } else {
+                //Busca el nombre del perfil activo.
+                let profilesList = JSON.parse(localStorage.getItem('profilesList'));
+                let activeName = profilesList.profiles[profilesList.active].name;
+
+                $.getJSON('js/db.json', function(result) {
+                    result.technologies.forEach(function(technology) {
+                        technologiesList[technology.name] = gameParameters.technologiesDeveloped;
+                    });
+                });
+
+                this.activeGame = new Game(
+                    gameName, gameParameters.victoryMode, 'active', 1, '',
+
+                    //Tablero de la partida.
+                    gameBoard,
+                    
+                    //Valores del IA:
+                    [new Player('AI', gameParameters.initialGold, gameParameters.initialMana, gameParameters.initialFood, 
+                    [//Propiedades iniciales en tablero.
+                        new Building('Castle', 'Building', 'gold', 500, gameParameters.initialCastleHealth, 20, 2, 2, 'alive','gold', 150),
+                        new Building('Temple', 'Building', 'gold', 400, gameParameters.initialTempleHealth, 0, 2, 2, 'alive','mana', 300),
+                        new Building('Windmill', 'Building', 'gold', 300, gameParameters.initialWindmillHealth, 0, 2, 2, 'alive','food', 500)
+                    ], 
+                    //Refuerzos
+                    gameParameters.initialArmy,
+                    //Powerups
+                    gameParameters.initialPowerups, 
+                    //Tecnologías.
+                    technologiesList,
+                    6 //Spawn reach
+                    ),
+
+                    //Valores del jugador humano:
+                    new Player(activeName, gameParameters.initialGold, gameParameters.initialMana, gameParameters.initialFood, 
+                    [//Propiedades iniciales en tablero.
+                        new Building('Castle', 'Building', 'gold', 500, gameParameters.initialCastleHealth, 20, 2, 2, 'alive','gold', 125),
+                        new Building('Temple', 'Building', 'gold', 400, gameParameters.initialWindmillHealth, 0, 2, 2, 'alive', 'mana', 100),
+                        new Building('Windmill', 'Building', 'gold', 300, gameParameters.initialTempleHealth, 0, 2, 2, 'alive','food', 100)
+                    ], 
+                    //Refuerzos
+                    gameParameters.initialArmy,
+                    //Powerups
+                    gameParameters.initialPowerups, 
+                    //Tecnologías.
+                    technologiesList,
+                    8 //Spawn reach
+                    )],
+
+                    `${new Date().toLocaleDateString()} - ${new Date().getHours()}:${new Date().getMinutes()}`
+                );
+
+                //TODO: Añade los powerups iniciales.
+
+                //Añade las unidades iniciales como refuerzos.
+                if (gameParameters.initialArmy.length > 0) {
+                    gameParameters.initialArmy.forEach(function(unit) {
+                        $('#reinforcements-list').append(`<option>${unit.name}</option>`);
+                    });
+                }
+
+                //Si las tecnologías están desarrolladas de arranque, las activa.
+                if (gameParameters.technologiesDeveloped == true) {
+                    for (const technology in this.activeGame.players[1].technologies) {
+                        this.powerupFunctions[technology](this, 0);
+                        this.powerupFunctions[technology](this, 1);
+                    }
+                }
+            }
+
+            //Termina de definir el tablero.
+            gameBoard.setLogicalBoard();
+            gameBoard.setVisualBoard();
+            if (gameName == '') {
+                //Ubica los edificios.
+                gameBoard.setInitialBuildings(2, 3, 1, 22, 21, 23); //TODO: Cambiar por cada tamaño de mapa.
+            }
+
+            this.initializeGame();
+        }
+
         //Guarda la partida para poder cargarla posteriormente.
         saveGame(name) {
             localStorage.setItem(name, JSON.stringify(new Game(
                 name,
+                this.activeGame.victoryMode,
                 'active',
                 this.activeGame.turn,
                 $('#events-list').text(),
@@ -509,13 +434,13 @@ $(document).ready(function($) {
             //Color original: '#4C1C24'
             this.highlightTile(tile, 'maroon', 'highlighted', true);
             this.loadInsights(boardIndex);
-            this.buttonsAvailability(boardIndex, 8);
+            this.buttonsAvailability(boardIndex);
         }
 
         //Obtiene de un casillero: el objeto de una propiedad (si la hubiera) y de qué jugador es.
         getTileID(tile) { return parseInt(tile.attr('id').slice(11, tile.attr('id').length)); }
-        getPlayer(tileID) { return this.activeGame.board[tileID].player; }
-        getPropertyIndex(tileID) { return this.activeGame.board[tileID].propertyIndex; }
+        getPlayer(tileID) { return this.activeGame.board.tiles[tileID].player; }
+        getPropertyIndex(tileID) { return this.activeGame.board.tiles[tileID].propertyIndex; }
         getProperty(tileID) {
             if (this.getPlayer(tileID) === false) {
                 return false;
@@ -535,9 +460,10 @@ $(document).ready(function($) {
             $('.board-image').removeClass('highlighted');
 
             //Reactiva la escucha del evento para el click clásico sobre cualquier casillero.
-            $('.board-image:not(.highlighted,.highlighted-move,.highlighted-attack)').on('click', function() {
+            $('#board').on('click', '.board-image:not(.highlighted,.highlighted-move,.highlighted-attack)', function() {
                 handler.clickBoardTile($(this));
             });
+            
             //Rehabilita los botones de acción.
             $('#end-turn').attr('disabled', false);
             $('#powerups-cast').attr('disabled', false);
@@ -553,12 +479,12 @@ $(document).ready(function($) {
             let targetTileID = this.getTileID(targetTile);
 
             //Intercambia la información de tablero del casillero de origen con el destino, y vacía el de origen.
-            this.activeGame.board[targetTileID].player = this.activeGame.board[currentTileID].player;
-            this.activeGame.board[targetTileID].propertyIndex = this.activeGame.board[currentTileID].propertyIndex;
-            this.activeGame.board[currentTileID].propertyIndex = false;
-            this.activeGame.board[currentTileID].player = false;
+            this.activeGame.board.tiles[targetTileID].player = this.activeGame.board.tiles[currentTileID].player;
+            this.activeGame.board.tiles[targetTileID].propertyIndex = this.activeGame.board.tiles[currentTileID].propertyIndex;
+            this.activeGame.board.tiles[currentTileID].propertyIndex = false;
+            this.activeGame.board.tiles[currentTileID].player = false;
 
-            let targetUnit = this.activeGame.players[player].properties[this.activeGame.board[targetTileID].propertyIndex];
+            let targetUnit = this.activeGame.players[player].properties[this.activeGame.board.tiles[targetTileID].propertyIndex];
 
             //Recarga las imágenes correspondientes.
             $(`#board-tile-${targetTileID}`).attr('src', `res/img/${targetUnit.name}-${player}.png`);
@@ -567,9 +493,9 @@ $(document).ready(function($) {
             $(`#board-tile-${currentTileID}`).attr('alt', 'transparent');
 
             //Gasta uno de stamina a la unidad.
-            this.changeGlobalPropertyStat(1, this.activeGame.board[targetTileID].propertyIndex, 'stamina', -1);
+            this.changeGlobalPropertyStat(1, this.activeGame.board.tiles[targetTileID].propertyIndex, 'stamina', -1);
             //Añade el evento.
-            this.addEvent(`${this.activeGame.players[player].name}'s ${targetUnit.name} moved from square ${currentTileID} to ${targetTileID}.`);
+            this.addEvent(`${targetUnit.name} (${this.activeGame.players[player].name}) moved from square ${currentTileID} to ${targetTileID}.`);
             //Retorno a la normalidad.
             this.cleanBoardOptions(targetTileID, this);
         }
@@ -587,7 +513,7 @@ $(document).ready(function($) {
             //Gasta uno de stamina al atacante.
             this.changeGlobalPropertyStat(player, this.getPropertyIndex(attackingTileID), 'stamina', -1);
             //Añade el evento.
-            this.addEvent(`${this.activeGame.players[player].name}'s ${attackingUnit.name} attacked ${attackedUnit.name} on square ${attackedTileID}.`);
+            this.addEvent(`${attackingUnit.name} (${this.activeGame.players[player].name}) attacked ${attackedUnit.name} on square ${attackedTileID}.`);
 
             //Si fallece el atacado, se aplican los cambios correspondientes.
             this.checkDeceasedProperty(attackedUnit, attackedTileID);
@@ -599,8 +525,8 @@ $(document).ready(function($) {
         checkDeceasedProperty(property, propertyTileID) {
             if (property.health <= 0) {
                 property.condition = 'deceased';
-                this.activeGame.board[propertyTileID].player = false;
-                this.activeGame.board[propertyTileID].propertyIndex = false;
+                this.activeGame.board.tiles[propertyTileID].player = false;
+                this.activeGame.board.tiles[propertyTileID].propertyIndex = false;
                 $(`#board-tile-${propertyTileID}`).attr('src', `res/img/transparent.png`);
                 $(`#board-tile-${propertyTileID}`).attr('alt', 'transparent');
             }
@@ -608,9 +534,10 @@ $(document).ready(function($) {
 
         //Ejecuta el cargado de imágenes del tablero visual, con una matriz de tablero lógico pasado por parámetro.
         loadBoardImages(logicalBoard) {
+            console.log(logicalBoard);
             let targetObject;
 
-            logicalBoard.forEach( function(tileID, index) {
+            logicalBoard.forEach(function(tileID, index) {
                 //Verifica si el casillero tiene propiedad, para cargar la imagen debida o una transparente.
                 if (tileID.player === false) {
                     targetObject = { name: 'transparent' }
@@ -627,11 +554,13 @@ $(document).ready(function($) {
         //Carga las opciones de una categoría de crafteo determinada guardadas en el JSON.
         loadCraftingList(category) {
             $.getJSON("js/db.json", function(result) {
+                let capCategory = category.charAt(0).toUpperCase() + category.slice(1);
+
                 $(`#group-${category}`).remove();
-                $('#crafting-list').append(`<optgroup id='group-${category}' label='${category}'></optgroup>`);
+                $('#crafting-list').append(`<optgroup id='group-${category}' label='${capCategory}'></optgroup>`);
 
                 //Añade todas las opciones de esa categoría guardadas en el JSON.
-                result[category].forEach( function(item) {
+                result[category].forEach(function(item) {
                     $(`#group-${category}`).append(`<option class='option-${category}'>${item.name}</option>`);
                 });
 
@@ -685,20 +614,12 @@ $(document).ready(function($) {
             }
         }
 
-        //Carga los datos del perfil del localStorage.
-        loadProfile() {
-            let profileData = JSON.parse(localStorage.getItem("profile"));
-
-            $('.player-name:eq(0)').html('&nbsp;' + profileData.name);
-        }
-
         //Resalta un casillero del tablero.
         highlightTile(tile, color, highlightClass, overwrite) {
             //Elimina el efecto visual y el argumento lógico en todos los demás casilleros.
             if (overwrite == true) {
-                // $boardImages.css('border', 'none');
-                $boardImages.animate({borderWidth: '0px'}, 50, 'swing');
-                $boardImages.removeClass(highlightClass);
+                $('.board-image').animate({borderWidth: '0px'}, 50, 'swing');
+                $('.board-image').removeClass(highlightClass);
             }
 
             //Aplica el efecto visual para el casillero indicado.
@@ -711,22 +632,24 @@ $(document).ready(function($) {
         //Resalta los casilleros válidos para movimiento para determinado casillero.
         highlightValidOptions(tile, action, actioningUnit) {
             let tileID = this.getTileID(tile);
-            let countInvalid = 0;
-            let maximumInvalid = 4;
+            let columns = this.activeGame.board.columns;
             let actionValid;
             let actionColor;
             let actionClass;
-
-            //Cuenta las opciones no válidas y resalta las válidas.
-            function countInvalidOptions(handler, optionsArray) {
-                optionsArray.forEach( function(validOption) {
-                    if (validOption === false) {
-                        countInvalid++;
-                    } else {
-                        handler.highlightTile($(`#board-tile-${validOption}`), actionColor, actionClass, false);
-                    }
-                });
-            }
+            let validOptions = {
+                archerTop: tileID - (columns * 2), 
+                cavalierTopLeft: tileID - (columns + 1), 
+                normalTop: tileID - columns, 
+                cavalierTopRight: tileID - (columns - 1), 
+                archerLeft: tileID - 2, 
+                normalLeft: tileID - 1, 
+                normalRight: tileID + 1, 
+                archerRight: tileID + 2, 
+                cavalierBottomLeft: tileID + (columns - 1), 
+                normalBottom: tileID + columns, 
+                cavalierBottomRight: tileID + (columns + 1), 
+                archerBottom: tileID + (columns * 2)
+            };
 
             //Hace distinciones según la acción del jugador.
             switch (action) {
@@ -742,62 +665,73 @@ $(document).ready(function($) {
                 break;
             }
 
-            //Array que contempla los movimientos virtualmente posibles de la unidad.
-            //Opciones universales:
-            let validOptions = [tileID - 3, tileID + 1, tileID + 3, tileID - 1];
-            //Opciones de movimiento/ataque especiales de caballería:
-            let validOptionsCavalry = [tileID - 4, tileID - 2, tileID + 2, tileID + 4];
-            //Opciones de ataque especiales de arquero:
-            let validAttacksBow = [tileID - 6, tileID + 2, tileID + 6, tileID - 2];
+            //Descarta movimientos posibles según el tipo de unidad.
+            if (actioningUnit !== 'Archer' || (actioningUnit == 'Archer' && action == 'move')) {
+                delete validOptions.archerTop;
+                delete validOptions.archerLeft;
+                delete validOptions.archerBottom;
+                delete validOptions.archerRight;
+            }
+            if (actioningUnit !== 'Cavalier') {
+                delete validOptions.cavalierTopLeft;
+                delete validOptions.cavalierTopRight;
+                delete validOptions.cavalierBottomLeft;
+                delete validOptions.cavalierBottomRight;
+            }
 
-            //Borra un movimiento si la unidad está en un borde o la posibilidad objetivo está ocupada.
-            if (actioningUnit != 'Priest' && actioningUnit != 'Wizard') {
-                if (tile.hasClass('top-row') || this.activeGame.board[tileID - 3].player !== actionValid || this.getProperty(tileID - 3).name == 'Priest') { validOptions[0] = false }
-                if (tile.hasClass('right-column') || this.activeGame.board[tileID + 1].player !== actionValid || this.getProperty(tileID + 1).name == 'Priest') { validOptions[1] = false }
-                if (tile.hasClass('bottom-row') || this.activeGame.board[tileID + 3].player !== actionValid || this.getProperty(tileID + 3).name == 'Priest') { validOptions[2] = false }
-                if (tile.hasClass('left-column') || this.activeGame.board[tileID - 1].player !== actionValid || this.getProperty(tileID - 1).name == 'Priest') { validOptions[3] = false }
-            } 
-            
-            //Desctiva opciones especiales si se trata de una unidad que los posee.
-            if (actioningUnit == 'Priest' || actioningUnit == 'Wizard') {
-                if (tile.hasClass('top-row') || this.activeGame.board[tileID - 3].player !== actionValid) { validOptions[0] = false }
-                if (tile.hasClass('right-column') || this.activeGame.board[tileID + 1].player !== actionValid) { validOptions[1] = false }
-                if (tile.hasClass('bottom-row') || this.activeGame.board[tileID + 3].player !== actionValid) { validOptions[2] = false }
-                if (tile.hasClass('left-column') || this.activeGame.board[tileID - 1].player !== actionValid) { validOptions[3] = false }
+            //Descarta movimientos posibles por ubicación de la unidad en extremos.
+            //FALTAN LOS ATAQUES DISTANTES DEL ARCHER.
+            if (tile.hasClass('top-row')) {
+                delete validOptions.archerTop;
+                delete validOptions.cavalierTopLeft;
+                delete validOptions.normalTop;
+                delete validOptions.cavalierTopRight;
+            }
+            if (tile.hasClass('left-column')) {
+                delete validOptions.archerLeft;
+                delete validOptions.cavalierTopLeft;
+                delete validOptions.normalLeft;
+                delete validOptions.cavalierBottomLeft;
+            }
+            if (tile.hasClass('bottom-row')) {
+                delete validOptions.archerBottom;
+                delete validOptions.cavalierBottomLeft;
+                delete validOptions.normalBottom;
+                delete validOptions.cavalierBottomRight;
+            }
+            if (tile.hasClass('right-column')) {
+                delete validOptions.archerRight;
+                delete validOptions.cavalierTopRight;
+                delete validOptions.normalRight;
+                delete validOptions.cavalierBottomRight;
+            }
 
-            } else if (actioningUnit == 'Cavalier') {
-                maximumInvalid = 8;
+            //Con los movimientos restantes, quita los que estén ocupados para movimiento o no sean rivales para ataque (o el enemigo sea Priest).
+            for (const option in validOptions) {
+                if (this.activeGame.board.tiles[validOptions[option]].player !== actionValid) {
+                   delete validOptions[option];
+                }
 
-                if (tile.hasClass('top-row') || this.activeGame.board[tileID - 2].player !== actionValid || this.getProperty(tileID - 2).name == 'Priest') { validOptionsCavalry[1] = false }
-                if (tileID < 4 || this.activeGame.board[tileID - 4].player !== actionValid || this.getProperty(tileID - 4).name == 'Priest') { validOptionsCavalry[0] = false }
-                if (tile.hasClass('right-column') || this.activeGame.board[tileID - 2].player !== actionValid || this.getProperty(tileID - 2).name == 'Priest') { validOptionsCavalry[1] = false }
-                if (tile.hasClass('right-column') || this.activeGame.board[tileID + 4].player !== actionValid || this.getProperty(tileID + 4).name == 'Priest') { validOptionsCavalry[3] = false }
-                if (tile.hasClass('bottom-row') || this.activeGame.board[tileID + 2].player !== actionValid || this.getProperty(tileID + 2).name == 'Priest') { validOptionsCavalry[2] = false }
-                if (tileID > 10 || this.activeGame.board[tileID + 4].player !== actionValid || this.getProperty(tileID + 4).name == 'Priest') { validOptionsCavalry[3] = false }
-                if (tile.hasClass('left-column') || this.activeGame.board[tileID - 4].player !== actionValid || this.getProperty(tileID - 4).name == 'Priest') { validOptionsCavalry[0] = false }
-                if (tile.hasClass('left-column') || this.activeGame.board[tileID + 2].player !== actionValid || this.getProperty(tileID + 2).name == 'Priest') { validOptionsCavalry[2] = false }
-                
-                countInvalidOptions(this, validOptionsCavalry);
-            } else if (actioningUnit == 'Archer' && action == 'attack') {
-                maximumInvalid = 8;
+                let attackedUnit;
+                try {
+                    attackedUnit = this.getProperty(validOptions[option]).name;
+                } catch {
+                    attackedUnit = 'Empty';
+                } finally {
+                    if (attackedUnit == 'Priest' && (actioningUnit !== 'Wizard' && actioningUnit !== 'Priest')) {
+                        delete validOptions[option]; 
+                    }
+                }
 
-                if (tileID < 6 || this.activeGame.board[tileID - 6].player !== actionValid || this.getProperty(tileID - 6).name == 'Priest') { validAttacksBow[0] = false }
-                if (!tile.hasClass('left-column') || this.activeGame.board[tileID + 2].player !== actionValid || this.getProperty(tileID + 2).name == 'Priest') { validAttacksBow[1] = false }
-                if (tileID > 8 || this.activeGame.board[tileID + 6].player !== actionValid || this.getProperty(tileID + 6).name == 'Priest') { validAttacksBow[2] = false }
-                if (!tile.hasClass('right-column') || this.activeGame.board[tileID - 2].player !== actionValid || this.getProperty(tileID - 2).name == 'Priest') { validAttacksBow[3] = false }
+                //Los válidos que quedan son resaltados.
+                this.highlightTile($(`#board-tile-${validOptions[option]}`), actionColor, actionClass, false);
+            }
 
-                countInvalidOptions(this, validAttacksBow);
-            } 
-
-            //Por cada opción válida, resalta su casillero.
-            countInvalidOptions(this, validOptions);
-
-            //Si no existen opciones disponibles se advierte y no se efectúa nada.
-            if (countInvalid >= maximumInvalid) {
+            //Si no quedaron movimientos válidos luego del análisis, se advierte. Si hay por lo menos uno, se aplican características de juego.
+            if (Object.keys(validOptions).length == 0) {
                 return Swal.fire({text: 'There are no options available.', icon: 'warning', width: '70%'});
-            //De lo contrario elimina la escucha del evento habitual en casilleros para enfocarse solamente en el movimiento/ataque.
             } else {
-                $('.board-image').off('click');
+                $('#board').off('click', '.board-image:not(.highlighted,.highlighted-move,.highlighted-attack)');
                 $('#end-turn').attr('disabled', true);
                 $('#powerups-cast').attr('disabled', true);
                 this.disableButtons(true, true);
@@ -822,8 +756,7 @@ $(document).ready(function($) {
         }
 
         //Analiza si corresponde la disponibilidad o no de los botones de acción para un casillero dado.
-        buttonsAvailability(tileID, spawnReach) {
-            let bonusReach = parseInt(this.activeGame.players[1].technologies["Campsites"]);
+        buttonsAvailability(tileID) {
             //Primer filtro: si el casillero no tiene dueño, se habilitan los botones insight-2.
             if (this.getPlayer(tileID) === false) {
                 //Si está al alcance del jugador, se puede accionar.
@@ -831,9 +764,9 @@ $(document).ready(function($) {
 
                 if ($reinforcementsAmount == 0) {
                     this.disableButtons2(true, true);
-                } else if ($reinforcementsAmount > 0 && tileID > spawnReach - bonusReach) {
+                } else if ($reinforcementsAmount > 0 && tileID > this.activeGame.players[1].specialAttributes.spawnReach) {
                     this.disableButtons2(false, false);
-                } else if ($reinforcementsAmount > 0 && tileID <= spawnReach - bonusReach) {
+                } else if ($reinforcementsAmount > 0 && tileID <= this.activeGame.players[1].specialAttributes.spawnReach) {
                     this.disableButtons2(true, false);
                 }
             //Si el casillero pertenece al AI, se inhabilitan los botones de acción. 
@@ -870,11 +803,11 @@ $(document).ready(function($) {
 
         }
 
-        //Verifica la existencia de una propiedad viva (unidad o edificio) según su nombre en un jugador específico.
+        //Verifica la existencia de una propiedad viva o no (unidad o edificio) según su nombre en un jugador específico.
         searchProperty(name, condition, player) {
             let result = false;
 
-            this.activeGame.players[player].properties.forEach( function(property, index) {
+            this.activeGame.players[player].properties.forEach(function(property, index) {
                 if (property.name == name && property.condition == condition) {
                     result = index;
                 }
@@ -926,8 +859,8 @@ $(document).ready(function($) {
                 $(`#board-tile-${selectedTileID}`).attr('src', `res/img/${selectedReinforcementName}-${player}.png`);
                 $(`#board-tile-${selectedTileID}`).attr('alt', selectedReinforcementName);
                 //Aplica los datos de jugador y propiedad sobre el casillero del tablero.
-                this.activeGame.board[selectedTileID].player = player;
-                this.activeGame.board[selectedTileID].propertyIndex = this.activeGame.players[player].properties.length - 1;
+                this.activeGame.board.tiles[selectedTileID].player = player;
+                this.activeGame.board.tiles[selectedTileID].propertyIndex = this.activeGame.players[player].properties.length - 1;
                 //Añade el evento.
                 this.addEvent(`${this.activeGame.players[player].name} spawned ${selectedReinforcementName} on square ${selectedTileID}.`);
             } else if (action == 'disarm') {
@@ -968,7 +901,7 @@ $(document).ready(function($) {
                 } else if (resource === 'gold' && this.activeGame.players[1].properties[this.searchProperty('Castle', 'alive', 1)].stamina < 1) {
                     $('#crafting-data button:eq(0)').attr('disabled', true);
                 //No se puede hacer una misma tecnología dos o más veces.
-                } else if ($('#crafting-data button:eq(0)').text() === 'Develop' && technologyBonus != 0) {
+                } else if ($('#crafting-data button:eq(0)').text() === 'Develop' && technologyBonus != false) {
                     $('#crafting-data button:eq(0)').attr('disabled', true);
                 }
             //Si no hay recursos suficientes, no se puede hacer.
@@ -997,19 +930,19 @@ $(document).ready(function($) {
                 
                 //Aplica los cambios visuales correspondientes según la categoría de option.
                 switch (optionClass) {
-                    case 'Units':
+                    case 'units':
                         loadUnitSummary(targetObject);
                         $('#crafting-data button:eq(0)').text('Recruit');
                         break;
-                    case 'Buildings':
+                    case 'buildings':
                         loadUnitSummary(targetObject);
                         $('#crafting-data button:eq(0)').text('Build');
                         break;
-                    case 'Powerups':
+                    case 'powerups':
                         $('#crafting-summary-unit').hide();
                         $('#crafting-data button:eq(0)').text('Cast');
                         break;
-                    case 'Technologies':
+                    case 'technologies':
                         $('#crafting-summary-unit').hide();
                         $('#crafting-data button:eq(0)').text('Develop');
                         break;
@@ -1035,8 +968,8 @@ $(document).ready(function($) {
                     let unitName = $('#crafting-list option:selected').text();
                     let unitStrength;
 
-                    if (unitName === 'Warrior' || unitName === 'Militia') {
-                        unitStrength = parseInt($('#crafting-unit-strength').text()) + parseInt(this.activeGame.players[player].technologies["Magical swords"]);
+                    if ((unitName === 'Warrior' || unitName === 'Militia') && (this.activeGame.players[player].technologies["Magical swords"] == true)) {
+                        unitStrength = parseInt($('#crafting-unit-strength').text()) + 10;
                     } else {
                         unitStrength = parseInt($('#crafting-unit-strength').text());
                     }
@@ -1058,7 +991,7 @@ $(document).ready(function($) {
                     //Añade el evento.
                     this.addEvent(`${this.activeGame.players[player].name} recruited ${unitName}.`);
                     //Actualiza la condición de los botones si está seleccionado un casillero vacío.
-                    this.buttonsAvailability(this.getTileID($('.board-image.highlighted:eq(0)')), 8);
+                    this.buttonsAvailability(this.getTileID($('.board-image.highlighted:eq(0)')));
                     break;
 
                 //Al invocar un powerup, lee y ejecuta su función correspondiente según el index que tenga.
@@ -1076,9 +1009,9 @@ $(document).ready(function($) {
                 //Si desarrolla una tecnología, obtiene el efecto del JSON y lo aplica en el jugador.
                 case 'Develop':
                     $.getJSON("js/db.json", function(result) {
-                        let technology = result.Technologies[$('#crafting-list option:selected').index()];
+                        let technology = result.technologies[$('#crafting-list option:selected').index()];
 
-                        this.activeGame.players[player].technologies[technology.name] = technology.effect;
+                        this.activeGame.players[player].technologies[technology.name] = true;
 
                         if (this.powerupFunctions[$('#crafting-list option:selected').text()] != undefined) {
                             this.powerupFunctions[$('#crafting-list option:selected').text()](this, player);
@@ -1143,9 +1076,77 @@ $(document).ready(function($) {
         }
     }
 
+    class Board {
+        constructor(rows, columns) {
+            //Guarda los datos necesarios en el futuro como propiedades.
+            this.rows = rows;
+            this.columns = columns;
+            this.tiles = [];
+        }
+
+        //Agrega los casilleros en el campo lógico.
+        setLogicalBoard() {
+            let totalTiles = this.rows * this.columns;
+
+            for (let i = 0; i < totalTiles; i++) {
+                this.tiles.push({propertyIndex: false, player: false});
+            }
+        }
+
+        //Dibuja el tablero visual en el HTML.
+        setVisualBoard() {
+            let totalTiles = this.rows * this.columns;
+
+            for (let i = 0; i < totalTiles; i++) {
+                //Agrega los casilleros en el campo visual.
+                $('#board').append(`
+                    <div class='board-tile'>
+                        <img id='board-tile-${i}' class='board-image' draggable="false" src='res/img/transparent.png' alt='transparent'>
+                    </div>
+                `);
+            }
+
+            //Establece las columnas visuales del tablero/grilla.
+            $('#board').css('grid-template-columns', `repeat(${this.columns}, 1fr)`);
+
+            //Determina los casilleros de cada fila y columna para agregarles su respectiva clase.
+            for (let i = 0; i < this.columns; i++) {
+                $(`#board-tile-${i}`).addClass('top-row');
+            }
+            for (let i = ((totalTiles - 1) - (this.columns - 1)); i < totalTiles; i++) {
+                $(`#board-tile-${i}`).addClass('bottom-row');
+            }
+            for (let i = 0; i < this.rows; i++) {
+                $(`#board-tile-${i * this.columns}`).addClass('left-column');
+            }
+            for (let i = 1; i <= this.rows; i++) {
+                $(`#board-tile-${(i * this.columns) - 1}`).addClass('right-column');
+            }
+        }
+
+        //Fija los datos lógicos para los edificios en un tablero nuevo.
+        setInitialBuildings(castlePos0, templePos0, windmillPos0, castlePos1, templePos1, windmillPos1) {
+            //Aplica las propiedades del jugador IA.
+            this.tiles[castlePos0].propertyIndex = 0
+            this.tiles[castlePos0].player = 0
+            this.tiles[templePos0].propertyIndex = 1
+            this.tiles[templePos0].player = 0
+            this.tiles[windmillPos0].propertyIndex = 2
+            this.tiles[windmillPos0].player = 0
+            //Aplica las propiedades del jugador humano.
+            this.tiles[castlePos1].propertyIndex = 0
+            this.tiles[castlePos1].player = 1
+            this.tiles[templePos1].propertyIndex = 1
+            this.tiles[templePos1].player = 1
+            this.tiles[windmillPos1].propertyIndex = 2
+            this.tiles[windmillPos1].player = 1
+        }
+    }
+
     class Game {
-        constructor(name, condition, turn, events, board, players, date) {
+        constructor(name, victoryMode, condition, turn, events, board, players, date) {
             this.name = name;
+            this.victoryMode = victoryMode;
             this.condition = condition;
             this.turn = turn;
             this.events = events;
@@ -1156,7 +1157,7 @@ $(document).ready(function($) {
     }
 
     class Player {
-        constructor(name, gold, mana, food, properties, reinforcements, targetedPowerups, technologies) {
+        constructor(name, gold, mana, food, properties, reinforcements, targetedPowerups, technologies, spawnReach) {
             this.name = name;
             this.gold = gold;
             this.mana = mana;
@@ -1165,6 +1166,9 @@ $(document).ready(function($) {
             this.reinforcements = reinforcements;
             this.targetedPowerups = targetedPowerups;
             this.technologies = technologies;
+            this.specialAttributes = {
+                spawnReach: spawnReach
+            }
             this.condition = 'playing';
         }
     }
@@ -1192,8 +1196,7 @@ $(document).ready(function($) {
     }
 
     //Crea el handler encargado de maquetar todas las herramientas de la jugabilidad.
-    handler = new Handler();
-    handler.menuEventsHandling();
+    handler = new GameHandler();
     handler.gameEventsHandling();
-    handler.initializeMenu();
+    handler.setupGame(localStorage.getItem("gameToLoad"));
 });

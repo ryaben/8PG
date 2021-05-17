@@ -1,0 +1,236 @@
+/* Variables globales */
+
+@font-face {
+    font-family: 'Retro-Gaming';
+    src: url(../res/font/Retro-Gaming.ttf);
+}
+
+* {
+    font-family: 'Retro-Gaming';
+}
+
+input[type='checkbox'] {
+    margin-left: 0;
+}
+
+.swal2-popup {
+    max-width: 480px;
+}
+
+/* Variables para index.html */
+
+body {
+    min-width: 380px;
+    max-width: 550px;
+    width: 100%;
+    margin: auto;
+    background: url(../res/img/back.png);
+}
+
+.content-box, .button-group button, .main-button {
+    border: 2px solid black;
+    border-radius: 4px;
+}
+
+.content-box {
+    font-size: small;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    margin: 0 5% 0 5%;
+}
+
+.main-title {
+    color: white;
+    font-size: x-large;
+    margin: 5% auto 5% auto;
+}
+
+.save-entry {
+    background-color: white;
+    display: block;
+    border: solid black 1px;
+    border-radius: 3px;
+    margin: 0 5% 2.5% 5%;
+}
+
+.save-entry:hover {
+    background-color: thistle;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+}
+
+.button-group button {
+    margin: 5% 5% 0 5%;
+    width: 35%;
+    height: 35px;
+}
+
+.main-button {
+    display: block;
+    width: 70%;
+    margin: 8vh 15% 8vh 15%;
+    height: 8vh;
+}
+
+.main-button:hover, .back:hover, #new-file:hover, #load-file:hover, #save-profile:hover {
+    background-color: lightslategray;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+.delete-entry {
+    background-color: white;
+    color: red;
+    border: none;
+}
+
+.menu-screen {
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.player-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+.checked-parameter, #default-parameters, #victory-main {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    margin: 2%;
+}
+
+.parameter-main {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.parameter-value, #board-size-value {
+    text-align: center;
+}
+
+.divisory-line {
+    border: 0.5px solid black;
+    margin: 3% 0 3% 0;
+}
+
+#game-logo {
+    width: 80%;
+    height: 20%;
+    margin: 5vh 10% 0 10%;
+}
+
+#player-bonus, #ai-difficulty {
+    width: 40%;
+    margin-right: 6px;
+}
+
+#victory-main {
+    display: flex;
+    justify-content: space-evenly;
+    margin-bottom: 1%;
+}
+
+#victory-list {
+    width: 56%;
+}
+
+#victory-description {
+    width: 92%;
+    height: 50px;
+    margin: 2% 4% 0 4%;
+}
+
+#default-parameters {
+    justify-content: center;
+    margin-bottom: 4%;
+}
+
+#custom-parameters {
+    display: grid;
+    grid-template-columns: 28px 37% 35% 20%;
+    row-gap: 7px;
+    align-items: center;
+    padding: 0 2% 0 2%;
+}
+
+#extra-parameters, #game-players {
+    border: 1px solid black;
+    border-radius: 4px;
+    margin: 4%;
+}
+
+#extra-parameters, #default-parameters {
+    margin-top: 0;
+}
+
+#initial-units-amount, #initial-powerups-amount {
+    font-size: 0.8em;
+    width: 35px;
+}
+
+#initial-units-type, #initial-powerups-type {
+    font-size: 0.95em;
+    width: 110px;
+}
+
+#profile-box {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 4%;
+    justify-content: space-between;
+}
+
+#add-profile, #change-name, #delete-profile {
+    width: 33.33%;
+    height: 50px;
+}
+
+#add-profile {
+    background-color: lightgreen;
+}
+
+#change-name {
+    background-color: lightyellow;
+}
+
+#delete-profile {
+    background-color: lightsalmon;
+}
+
+#profile-name-input {
+    width: 100%;
+    height: 30px;
+}
+
+#profile-list {
+    margin: 4% 4% 0 4%;
+    font-size: large;
+    text-align-last: center;
+    padding: 1%;
+}
+
+#profile-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 0 4% 0 4%;
+    border: 1px solid black;
+}

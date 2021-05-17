@@ -1,5 +1,5 @@
 {
-    "Units": [
+    "units": [
         {"name": "Militia",
         "costKind": "food",
         "costAmount": 100,
@@ -35,7 +35,7 @@
         {"name": "Wall",
         "costKind": "gold",
         "costAmount": 250,
-        "health": 40,
+        "health": 50,
         "strength": 0,
         "staminaMax": 0,
         "description": "Attached to the ground, Walls defend the Castle from incoming foes. They can surely provide quite a barrier, but cannot attack."},
@@ -73,10 +73,10 @@
         "description": "The absolute elite of the army. Knights are the bravest and strongest people you can gather. Having them aligned requires a small treasure."}
     ],
     
-    "Powerups": [
+    "powerups": [
         {"name": "Magic missile",
         "costKind": "mana",
-        "costAmount": 125,
+        "costAmount": 100,
         "description": "Inflict 10 DAMAGE to target unit."},
 
         {"name": "Meal break",
@@ -134,38 +134,40 @@
         "costAmount": 400,
         "description": "Add 20 HEALTH to all your units that are currently on the board."},
 
-        {"name": "Distant onslaught",
-        "costKind": "gold",
-        "costAmount": 500,
-        "description": "Inflict 20 DAMAGE to all enemy buildings on the board."},
-
         {"name": "Wrath of the gods",
         "costKind": "mana",
         "costAmount": 550,
-        "description": "Inflict 20 DAMAGE to all enemy units on the board."}
+        "description": "Inflict 20 DAMAGE to all enemy units on the board."},
+
+        {"name": "Distant onslaught",
+        "costKind": "gold",
+        "costAmount": 600,
+        "description": "Inflict 20 DAMAGE to all enemy buildings on the board."}
     ],
 
-    "Technologies": [
+    "technologies": [
+        {"name": "Giant wheels",
+        "costKind": "gold",
+        "costAmount": 400,
+        "description": "Your Castle is now treated as a Unit (it will be able to move and be target of powerups)."},
+
         {"name": "Iron tools",
         "costKind": "gold",
         "costAmount": 450,
-        "description": "Increase your Castle's production on 50 GOLD per turn.",
-        "effect": true},
+        "description": "Increase your Castle's production on 50 GOLD per turn."},
 
         {"name": "Magical swords",
         "costKind": "mana",
         "costAmount": 450,
-        "description": "Add 10 STRENGTH to your current and upcoming Warriors and Militias.",
-        "effect": 10},
+        "description": "Add 10 STRENGTH to your current and upcoming Warriors and Militias."},
 
         {"name": "Campsites",
         "costKind": "gold",
         "costAmount": 550,
-        "description": "Expand your reach of unit spawning on one row.",
-        "effect": 3}
+        "description": "Expand your reach of unit spawning on one row."}
     ],
 
-    "Buildings": [
+    "buildings": [
         {"name": "Temple",
         "costKind": "gold",
         "costAmount": 350,
@@ -185,5 +187,21 @@
         "productionKind": "food",
         "productionAmount": 100,
         "description": "."}
+    ],
+
+    "victoryModes": [
+        "Classical and default mode. The way to achieve victory is by destroying the opponent's Castle.",
+        "Upgraded version of the Conquest mode in which you need to destroy all enemy buildings in order to win.",
+        "Game is limited to 25 turns. After the final turn, the player with the most resources (or gold to untie) wins.",
+        "The first player that develops all technologies will be the winner."
+    ],
+
+    "parameterDescriptions": [
+        "The size of the game board/map. They are 5x3, 5x5 and 7x5, respectively.",
+        "Initial values of gold, mana and food for each player.",
+        "Initial value of health for Castle, Temple and Sawmill on each player.",
+        "If checked, players start the game with all technologies developed and their effects.",
+        "If checked, players start the game with X units as reinforcements.",
+        "If checked, players start the game with X powerups."
     ]
 }

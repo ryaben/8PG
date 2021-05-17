@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RPG</title>
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <title>8PG</title>
+    <link rel="stylesheet" type="text/css" href="css/game.css">
     <link rel="stylesheet" type="text/css" href="dep/animate.css/animate.min.css">
     <script src="dep/jquery/jquery-3.5.1.min.js"></script>
     <script src="dep/sweetalert2/sweetalert2@10.js"></script>
 </head>
 <!-- Carga la partida que se establece en el localStorage o inicia una con la plantilla. -->
-<body onload='handler.setupGame(localStorage.getItem("gameToLoad"))'>
+<body>
     <div id='upper-bar'>
         <div id='screen-switch'>
             <button id='menu'>☰</button>
@@ -20,17 +20,17 @@
     
         <div id='status-bar'>
             <div class='status-box'>
-                <img src='res/img/gold.png' alt='gold' width='40%'>
+                <img src='res/img/gold.png' alt='gold' height='85%'>
                 <div><p>Gold</p><p id='gold-score' class='score'>1000</p></div>
             </div>
     
             <div class='status-box' id='status-mana'>
-                <img src='res/img/mana.png' alt='mana' width='40%'>
+                <img src='res/img/mana.png' alt='mana' height='85%'>
                 <div><p>Mana</p><p id='mana-score' class='score'>1000</p></div>
             </div>
     
             <div class='status-box'>
-                <img src='res/img/food.png' alt='food' width='40%'>
+                <img src='res/img/food.png' alt='food' height='85%'>
                 <div><p>Food</p><p id='food-score' class='score'>1000</p></div>
             </div>
         </div>
@@ -43,113 +43,64 @@
 
     <div id='board-screen' class='game-screen animate__animated animate__slideInRight animate__faster'>
         <div id='board'>
-            <!-- Row 1 -->
-            <div class='board-tile'>
-                <img id='board-tile-0' class='board-image left-column top-row' draggable="false" src='res/img/transparent.png' alt='transparent'>
+            
+        </div>
+    </div>
+
+    <div id='lower-bar'>
+        <div id='insight'>
+            <div id='title-box'>
+                <p id='title'><b></b></p>
+                <img class='insight-icon' src='res/img/stamina.png' alt='stamina'>
+                <p id='stamina-score'></p>
             </div>
-            <div class='board-tile top-row'>
-                <img id='board-tile-1' class='board-image top-row' draggable="false" src='res/img/transparent.png' alt='transparent'>
+
+            <div class='insight-box'>
+                <p class='title'>&nbsp;Health:&nbsp;</p>
+                <img class='insight-icon' src='res/img/health.png' alt='health'>
+                <p id='health-score'></p>
             </div>
-            <div class='board-tile'>
-                <img id='board-tile-2' class='board-image right-column top-row' draggable="false" src='res/img/transparent.png' alt='transparent'>
+            <div class='insight-box'>
+                <p class='title'>&nbsp;Strength:&nbsp;</p>
+                <img class='insight-icon' src='res/img/strength.png' alt='strength'>
+                <p id='strength-score'></p>
             </div>
-            <!-- Row 2 -->
-            <div class='board-tile'>
-                <img id='board-tile-3' class='board-image left-column' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <div class='board-tile'>
-                <img id='board-tile-4' class='board-image' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <div class='board-tile'>
-                <img id='board-tile-5' class='board-image right-column' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <!-- Row 3 -->
-            <div class='board-tile'>
-                <img id='board-tile-6' class='board-image left-column' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <div class='board-tile'>
-                <img id='board-tile-7' class='board-image' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <div class='board-tile'>
-                <img id='board-tile-8' class='board-image right-column' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <!-- Row 4 -->
-            <div class='board-tile'>
-                <img id='board-tile-9' class='board-image left-column' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <div class='board-tile'>
-                <img id='board-tile-10' class='board-image' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <div class='board-tile'>
-                <img id='board-tile-11' class='board-image right-column' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <!-- Row 5 -->
-            <div class='board-tile'>
-                <img id='board-tile-12' class='board-image left-column bottom-row' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <div class='board-tile'>
-                <img id='board-tile-13' class='board-image bottom-row' draggable="false" src='res/img/transparent.png' alt='transparent'>
-            </div>
-            <div class='board-tile'>
-                <img id='board-tile-14' class='board-image right-column bottom-row' draggable="false" src='res/img/transparent.png' alt='transparent'>
+            <div class='insight-box'>
+                <select id='powerups-list'></select>
+                <button id='powerups-cast'>Cast</button>
+                <p class='title'>&nbsp;Production:&nbsp;</p>
+                <img id='production-icon' class='insight-icon' src='res/img/gold.png' alt='production'>
+                <p id='production-score'></p>
             </div>
         </div>
+        <div id='game-buttons'>
+            <button class='action-button' id='move'>Move</button>
+            <button class='action-button' id='attack'>Attack</button>
+        </div>
+    </div>
 
-        <div id='lower-bar'>
-            <div id='insight'>
-                <div id='title-box'>
-                    <p id='title'><b></b></p>
-                    <img class='insight-icon' src='res/img/stamina.png' alt='stamina'>
-                    <p id='stamina-score'></p>
-                </div>
-
-                <div class='insight-box'>
-                    <p class='title'>&nbsp;Health:&nbsp;</p>
-                    <img class='insight-icon' src='res/img/health.png' alt='health'>
-                    <p id='health-score'></p>
-                </div>
-                <div class='insight-box'>
-                    <p class='title'>&nbsp;Strength:&nbsp;</p>
-                    <img class='insight-icon' src='res/img/strength.png' alt='strength'>
-                    <p id='strength-score'></p>
-                </div>
-                <div class='insight-box'>
-                    <select id='powerups-list'></select>
-                    <button id='powerups-cast'>Cast</button>
-                    <p class='title'>&nbsp;Production:&nbsp;</p>
-                    <img id='production-icon' class='insight-icon' src='res/img/gold.png' alt='production'>
-                    <p id='production-score'></p>
-                </div>
+    <div id='lowest-bar'>
+        <div id='insight-2'>
+            <div id='title-box'>
+                <p id='title'><b>Empty square</b></p>
+                <img class='insight-icon' src='res/img/background-empty.png' alt='empty'>
             </div>
-            <div id='game-buttons'>
-                <button class='action-button' id='move'>Move</button>
-                <button class='action-button' id='attack'>Attack</button>
+            <div class='insight-box'>
+                <img class='insight-icon' src='res/img/background-empty.png' alt='empty'>
+                <p class='title'>&nbsp;Reinforcements:&nbsp;</p>
+            </div>
+            <div class='insight-box'>
+                <img class='insight-icon' src='res/img/background-empty.png' alt='empty'>
+                <select name="reinforcements-list" id="reinforcements-list">
+                </select>
+            </div>
+            <div class='insight-box'>
+                <img class='insight-icon' src='res/img/background-empty.png' alt='empty'>
             </div>
         </div>
-
-        <div id='lowest-bar'>
-            <div id='insight-2'>
-                <div id='title-box'>
-                    <p id='title'><b>Empty square</b></p>
-                    <img class='insight-icon' src='res/img/background-empty.png' alt='empty'>
-                </div>
-                <div class='insight-box'>
-                    <img class='insight-icon' src='res/img/background-empty.png' alt='empty'>
-                    <p class='title'>&nbsp;Reinforcements:&nbsp;</p>
-                </div>
-                <div class='insight-box'>
-                    <img class='insight-icon' src='res/img/background-empty.png' alt='empty'>
-                    <select name="reinforcements-list" id="reinforcements-list">
-                    </select>
-                </div>
-                <div class='insight-box'>
-                    <img class='insight-icon' src='res/img/background-empty.png' alt='empty'>
-                </div>
-            </div>
-            <div id='game-buttons-2'>
-                <button class='action-button' id='spawn'>Spawn</button>
-                <button class='action-button' id='disarm'>Disarm</button>
-            </div>
+        <div id='game-buttons-2'>
+            <button class='action-button' id='spawn'>Spawn</button>
+            <button class='action-button' id='disarm'>Disarm</button>
         </div>
     </div>
 
@@ -190,6 +141,5 @@
     </div>
 
 </body>
-<script type="text/javascript" src='js/index.js'></script>
 <script type="text/javascript" src='js/game.js'></script>
 </html>
