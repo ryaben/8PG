@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="dep/animate.css/animate.min.css">
     <script src="dep/jquery/jquery-3.5.1.min.js"></script>
     <script src="dep/sweetalert2/sweetalert2@10.js"></script>
+    <script type="text/javascript" src='js/index.js'></script>
 </head>
 <body>
     <div id='main-menu' class='menu-screen animate__animated animate__fadeIn animate__faster'>
@@ -43,7 +44,7 @@
 
             <div id='default-parameters'>
                 <input id='default-parameters-check' type='checkbox' name='default-parameters' checked='checked'>
-                <label for='default-parameters-check'>&nbsp;Play with default values</label>
+                <label for='default-parameters-check'>&nbsp;Play with default settings</label>
             </div>
             
             <div id='extra-parameters' style='display:none;'>
@@ -129,7 +130,7 @@
                 <p id='games-won'></p>
             </div>
             <div id='profile-box'>
-                <input id='profile-name-input' type='text'>
+                <input id='profile-name-input' type='text' placeholder='Write a name here'>
                 <button id='add-profile'>New player</button>
                 <button id='change-name'>Change name</button>
                 <button id='delete-profile'>Delete player</button>
@@ -151,5 +152,4 @@
         </div>
     </div>
 </body>
-<script type="text/javascript" src='js/index.js'></script>
 </html>

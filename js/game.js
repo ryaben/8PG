@@ -544,7 +544,7 @@ $(document).ready(function($) {
                     $(`#board-tile-${index}`).attr('src', `res/img/${targetObject.name}.png`);
                 } else {
                     targetObject = this.activeGame.players[tileID.player].properties[tileID.propertyIndex];
-                    $(`#board-tile-${index}`).attr('src', `res/img/${targetObject.name}-${tileID.player}.png`);
+                    $(`#board-tile-${index}`).attr('src', `res/img/${targetObject.name.toLowerCase()}-${tileID.player}.png`);
                 }
 
                 $(`#board-tile-${index}`).attr('alt', targetObject.name);
@@ -952,7 +952,7 @@ $(document).ready(function($) {
                 $('#crafting-description-p').text(targetObject.description);
                 $('#crafting-cost p:eq(1)').text(targetObject.costAmount);
                 $('#crafting-cost img').attr('src', `res/img/${targetObject.costKind}.png`);
-                $('#crafting-portrait').attr('src', `res/img/${targetObject.name}-1.png`);
+                $('#crafting-portrait').attr('src', `res/img/${targetObject.name.toLowerCase()}-1.png`);
 
                 //Verifica si el jugador puede craftear esa opción cargada.
                 this.buttonCraftingAvailability(targetObject.costKind, targetObject.costAmount);
