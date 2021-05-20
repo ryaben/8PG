@@ -107,6 +107,14 @@ body {
     align-items: center;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
+    padding: 0 6px 0 6px;
+}
+
+.player-name {
+    width: 145px;
+    border-bottom: dashed black 1px;
+    margin-left: 6px;
+    font-size: 1.1em;
 }
 
 .checked-parameter, #default-parameters, #victory-main {
@@ -138,9 +146,32 @@ body {
     margin: 5vh 10% 0 10%;
 }
 
-#player-bonus, #ai-difficulty {
+#color-square-0, #color-square-1 {
+    height: 22px;
+    width: 22px;
+}
+
+#color-square-0 {
+    background-color: gold;
+}
+
+#color-square-1 {
+    background-color: blue;
+    color: white;
+}
+
+#ai-difficulty, #guest-profile {
+    width: 145px;
+    font-size: 1.1em;
+    margin-left: 6px;
+}
+
+#opponent-options {
     width: 40%;
-    margin-right: 6px;
+    display: flex;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    justify-content: space-around;
 }
 
 #victory-main {
@@ -233,4 +264,8 @@ body {
     justify-content: space-around;
     margin: 0 4% 0 4%;
     border: 1px solid black;
+}
+
+#about-text {
+    margin: 5%;
 }

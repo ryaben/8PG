@@ -27,18 +27,34 @@
         <div class='content-box'>
             <div id='game-players'>
                 <div class='player-box'>
-                    <p class='player-name' style='color:red'>&nbsp;No profile created</p>
-                    <select id='player-bonus'>
-                        <option>No bonus</option>
-                    </select>
+                    <div style='display:flex;align-items:center;'>
+                        <div id='color-square-1'></div>
+                        <p class='player-name' style='color:red'>No profile</p>
+                    </div>
+                    <p>Plays first</p>
                 </div>
                 <div class='player-box'>
-                    <p class='player-name'>&nbsp;AI</p>
-                    <select id='ai-difficulty'>
-                        <option>Easy</option>
-                        <option>Medium</option>
-                        <option>Hard</option>
-                    </select>
+                    <div style='display:flex;align-items:center;'>
+                        <div id='color-square-0'></div>
+                        <select id='ai-difficulty'>
+                            <option>Easy</option>
+                            <option>Medium</option>
+                            <option>Hard</option>
+                        </select>
+                        <select id='guest-profile'>
+    
+                        </select>
+                    </div>
+                    <div id='opponent-options'>
+                        <div>
+                            <input id='ai-opponent' name='opponent' type='radio'>
+                            <label for='ai-opponent'>AI</label>
+                        </div>
+                        <div>
+                            <input id='human-opponent' name='opponent' type='radio'>
+                            <label for='human-opponent'>Human</label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -65,9 +81,10 @@
                     <img class='info-icon' src='res/img/info.png' alt='info' width='20px'>
                     <label for='board-size'>Board size</label>
                     <select id='board-size'>
+                        <option>Minimal</option>
                         <option>Small</option>
-                        <option>Medium</option>
                         <option>Large</option>
+                        <option>Huge</option>
                     </select>
                     <label id='board-size-value'></label>
                     <img class='info-icon' src='res/img/info.png' alt='info' width='20px'>
@@ -145,7 +162,7 @@
     <div id='about-screen' class='menu-screen animate__animated animate__fadeIn animate__faster'>
         <p class='main-title'>About 8PG</p>
         <div class='content-box'>
-            <p>8PG was developed by Ramiro Yaben</p>
+            <p id='about-text'>8PG was developed by Ramiro Yaben. Alpha version 0.2</p>
         </div>
         <div class='button-group'>
             <button class='back'>Back</button>

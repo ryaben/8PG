@@ -52,7 +52,6 @@ body {
 }
 
 .board-tile {
-    background-image: url('../res/img/grass.png');
     background-size: cover;
     margin: 0;
 }
@@ -167,16 +166,16 @@ body {
     top: 141px;
     bottom: 155px;
     overflow: auto;
-    padding-top: 5%;
-    background-image: url('../res/img/background-game.png');
-    background-size: contain;
+    padding: 5% 0 5% 0;
+    background-image: url('../res/img/background-1.png');
+    background-size: cover;
 }
 
 #board {
     display: grid;
     width: 90%;
-    max-width: 450px;
-    margin: 0 auto 5% auto;
+    max-width: 500px;
+    margin: 0 auto 0 auto;
 }
 
 #lower-bar, #lowest-bar, #crafting-cost {

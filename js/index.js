@@ -26,7 +26,7 @@ $(document).ready(function($) {
             });
 
             $('.player-name').on('click', function() {
-                if ($(this).text() == "\xa0No profile created") {
+                if ($(this).text() == "No profile") {
                     $('.main-button:eq(2)').click();
                 }
             });
@@ -39,8 +39,24 @@ $(document).ready(function($) {
                 }
             });
 
+            $('input[name=opponent]').on('change', function() {
+                if ($('#human-opponent').is(':checked') == true) {
+                    $('#ai-difficulty').hide();
+                    $('#guest-profile').show();
+                    handler.chooseProfile($('#guest-profile option:selected').index(), 'guest');
+                } else if ($('#ai-opponent').is(':checked') == true) {
+                    $('#ai-difficulty').show();
+                    $('#guest-profile').hide();
+                    handler.chooseProfile('AI', 'guest');
+                }
+            });
+
+            $('#guest-profile').on('change', function() {
+                handler.chooseProfile($('#guest-profile option:selected').index(), 'guest');
+            });
+
             $('#ai-difficulty').on('change', function() {
-                gameParameters.AIDifficulty = $(this).val();
+                handler.chooseProfile('AI', 'guest');
             });
 
             $('#victory-list').on('change', function() {
@@ -52,14 +68,17 @@ $(document).ready(function($) {
 
             $('#board-size').on('change', function() {
                 switch ($(this).val()) {
-                    case 'Small':
+                    case 'Minimal':
                         $('#board-size-value').text('5x3');
                     break;
-                    case 'Medium':
+                    case 'Small':
                         $('#board-size-value').text('5x5');
                     break;
                     case 'Large':
                         $('#board-size-value').text('7x5');
+                    break;
+                    case 'Huge':
+                        $('#board-size-value').text('7x7');
                     break;
                 }
 
@@ -168,7 +187,7 @@ $(document).ready(function($) {
             });
 
             $('#save-profile').on('click', function() {
-                handler.chooseProfile($('#profile-list').prop('selectedIndex'));
+                handler.chooseProfile($('#profile-list').prop('selectedIndex'), 'main');
                 $('.back:eq(2)').click();
             });
         }
@@ -220,13 +239,20 @@ $(document).ready(function($) {
         }
 
         //Cambia el valor de active por el perfil elegido.
-        chooseProfile(index) {
+        chooseProfile(index, playerType) {
             let profilesList = JSON.parse(localStorage.getItem("profilesList"));
 
-            profilesList.active = index;
-            //Carga el nombre en New game.
-            $('.player-name:eq(0)').css('color', 'green');
-            $('.player-name:eq(0)').html('&nbsp;' + profilesList.profiles[index].name);
+            switch (playerType) {
+                case 'main': 
+                    profilesList.active = index;
+                    //Carga el nombre en New game.
+                    $('.player-name:eq(0)').css('color', 'green');
+                    $('.player-name:eq(0)').html(profilesList.profiles[index].name);
+                break;
+                case 'guest': 
+                    profilesList.guestActive = index; 
+                break;
+            }
             
             localStorage.setItem('profilesList', JSON.stringify(profilesList));
         }
@@ -246,7 +272,8 @@ $(document).ready(function($) {
                 localStorage.setItem('profilesList', JSON.stringify(profilesList));
 
                 //Actualiza la lista de perfiles y el nombre del perfil actual.
-                this.updateProfiles();
+                this.updateProfiles($("#profile-list"));
+                this.updateProfiles($("#guest-profile"));
                 $('#profile-list').val($('#profile-name-input').val());
 
                 //Notifica las acciones;
@@ -276,11 +303,12 @@ $(document).ready(function($) {
                 }));
             } finally {
                 $('#profile-name-input').val("");
-                this.updateProfiles();
+                this.updateProfiles($("#profile-list"));
+                this.updateProfiles($("#guest-profile"));
 
                 $('#profile-list').prop('selectedIndex', $('#profile-list option').length - 1);
                 this.loadProfile($('#profile-list').prop('selectedIndex'));
-                this.chooseProfile($('#profile-list').prop('selectedIndex'));
+                this.chooseProfile($('#profile-list').prop('selectedIndex'), 'main');
 
                 Swal.fire({text: 'Player successfully added.', icon: 'info', width: '70%'});
             }
@@ -308,7 +336,8 @@ $(document).ready(function($) {
                         profilesList.profiles.splice($('#profile-list').prop('selectedIndex'), 1);
                         localStorage.setItem('profilesList', JSON.stringify(profilesList));
                         //Actualiza los perfiles y selecciona el primero.
-                        this.updateProfiles();
+                        this.updateProfiles($("#profile-list"));
+                        this.updateProfiles($("#guest-profile"));
                         $('#profile-list').prop('selectedIndex', 0);
                         this.loadProfile(0);
                     }
@@ -317,14 +346,14 @@ $(document).ready(function($) {
         }
 
         //Agrega cada jugador a la lista visual.
-        updateProfiles() {
+        updateProfiles(select) {
             let profilesList = JSON.parse(localStorage.getItem("profilesList"));
 
             if (profilesList != null) {
-                $("#profile-list").html('');
+                select.html('');
 
                 profilesList.profiles.forEach(function(current) {
-                    $("#profile-list").append(`<option>${current.name}</option>`);
+                    select.append(`<option>${current.name}</option>`);
                 });
             }
         }
@@ -368,7 +397,11 @@ $(document).ready(function($) {
         loadInitialTypes(type) {
             $.getJSON("js/db.json", function(result) {
                 result[type].forEach(function(current) {
-                    $(`#initial-${type}-type`).append(`<option>${current.name}</option>`)
+                    if (type == 'powerups' && current.type == 'targeted') {
+                        $(`#initial-${type}-type`).append(`<option>${current.name}</option>`);
+                    } else if (type == 'units') {
+                        $(`#initial-${type}-type`).append(`<option>${current.name}</option>`);
+                    }
                 });
             }.bind(this));
         }
@@ -404,20 +437,23 @@ $(document).ready(function($) {
 
                     //Hace bucle hasta la cantidad de unidades que desea el usuario y las agrega a los refuerzos iniciales.
                     for (let i = 0; i < $('#initial-units-amount').val(); i++) {
-                        gameParameters.initialArmy.push(new Unit(
-                            foundUnit.name,
-                            'Unit',
-                            foundUnit.costKind,
-                            foundUnit.costAmount,
-                            foundUnit.health,
-                            foundUnit.strength,
-                            foundUnit.staminaMax,
-                            foundUnit.staminaMax,
-                            'alive'
-                        ));
+                        gameParameters.initialArmy.push({
+                            name: foundUnit.name,
+                            type: 'Unit',
+                            costKind: foundUnit.costKind,
+                            costAmount: foundUnit.costAmount,
+                            health: foundUnit.health,
+                            strength: foundUnit.strength,
+                            stamina: foundUnit.staminaMax,
+                            staminaMax: foundUnit.staminaMax,
+                            condition: 'alive'
+                        });
                     }
                 });
             } else if (parameter == 'initialPowerups') {
+                //Borra la lista inicial para no duplicar en caso de seleccionar varias veces.
+                gameParameters.initialPowerups.length = 0;
+
                 //Hace bucle hasta la cantidad de powerups que desea el usuario y los agrega a la lista inicial.
                 for (let i = 0; i < $('#initial-powerups-amount').val(); i++) {
                     gameParameters.initialPowerups.push($('#initial-powerups-type').val());
@@ -430,27 +466,31 @@ $(document).ready(function($) {
             //Carga visualmente la lista de partidas guardadas.
             this.loadSavesList();
 
-            //Selecciona la primera opción de partidas guardadas.
+            //Selecciona la primera opción de partidas guardadas y oponente.
             $('input[name=save-entry]:eq(0)').click();
+            $('input[name=opponent]:eq(1)').click();
+            //Rival IA provisoriamente deshabilitado por no haber sido desarrollado.
+            $('input[name=opponent]:eq(0)').attr('disabled', true);
 
             //Selecciona la pantalla inicial.
             this.switchMenu(-1);
 
             //Establece parámetros en valores por defecto.
-            $('#board-size').val('Medium');
-            $('#board-size-value').text('5x5');
+            $('#board-size option:eq(2)').attr('selected', true);
+            $('#board-size-value').text('7x5');
             $('.parameter-slider').attr('value', '0');
             this.loadInitialTypes('units');
             this.loadInitialTypes('powerups');
             this.showParameterInfo(0, 'victoryModes');
 
             //Carga los perfiles.
-            this.updateProfiles();
+            this.updateProfiles($("#profile-list"));
+            this.updateProfiles($("#guest-profile"));
 
             //Selecciona el perfil activo.
             try {
                 this.loadProfile(JSON.parse(localStorage.getItem('profilesList')).active);
-                this.chooseProfile(JSON.parse(localStorage.getItem('profilesList')).active);
+                this.chooseProfile(JSON.parse(localStorage.getItem('profilesList')).active, 'main');
             } catch {
                 return;
             }
@@ -458,7 +498,7 @@ $(document).ready(function($) {
     }
 
     class Parameter {
-        constructor (victoryMode, boardSize, technologiesDeveloped, initialCastleHealth, initialTempleHealth, initialWindmillHealth, initialGold, initialMana, initialFood, initialArmy, initialPowerups, AIDifficulty, playerBonus) {
+        constructor (victoryMode, boardSize, technologiesDeveloped, initialCastleHealth, initialTempleHealth, initialWindmillHealth, initialGold, initialMana, initialFood, initialArmy, initialPowerups) {
             this.victoryMode = victoryMode;
             this.boardSize = boardSize;
             this.technologiesDeveloped = technologiesDeveloped;
@@ -470,14 +510,12 @@ $(document).ready(function($) {
             this.initialFood = initialFood;
             this.initialArmy = initialArmy;
             this.initialPowerups = initialPowerups;
-            this.AIDifficulty = AIDifficulty;
-            this.playerBonus = playerBonus;
         }
     }
 
     //Crea el handler encargado de maquetar el menú.
     handler = new MenuHandler();
-    gameParameters = new Parameter('Conquest', 'Medium', false, 100, 80, 80, 400, 300, 300, [], [], 'Easy', 'No bonus');
+    gameParameters = new Parameter('Conquest', 'Large', false, 100, 80, 80, 400, 300, 300, [], [], 'AI');
     handler.menuEventsHandling();
     handler.initializeMenu();
 });
